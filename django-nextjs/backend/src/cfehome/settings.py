@@ -144,3 +144,9 @@ STATICFILES_DIRS = [STATICFILES_BASE_DIR]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# GOOOGE O-AUTH SETTING 
+
+GOOGLE_CLIENT_ID= config('GOOGLE_CLIENT_ID', cast=str, default="")
+GOOGLE_SECRET_KEY= config('GOOGLE_SECRET_KEY', cast=str, default="")

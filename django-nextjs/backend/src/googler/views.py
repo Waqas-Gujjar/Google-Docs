@@ -3,7 +3,7 @@ from django.contrib.auth import login
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
-from . import oauth, services
+from googler import oauth, services
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 # 
