@@ -1,0 +1,27 @@
+scripts:
+  ui:
+    - cd frontend
+    - npm run dev
+
+  ui-install:
+    - cd frontend
+    - npm install
+
+  api:
+    - cd backend\src
+    - ..\..\venv\Scripts\python.exe manage.py runserver
+
+  api-migrate:
+    - cd backend\src
+    - ..\..\venv\Scripts\python.exe manage.py migrate
+
+  api-install:
+    - cd backend
+    - ..\venv\Scripts\pip-compile.exe src\requirements\dev.in --output-file requirements.dev.txt
+    - ..\venv\Scripts\pip-compile.exe src\requirements\prod.in --output-file requirements.txt
+    - ..\venv\Scripts\pip.exe install -r requirements.dev.txt
+    - ..\venv\Scripts\pip.exe install -r requirements.txt
+
+  generate-favicon:
+    # brew install imagemagick
+    - magick frontend\public\django-nextjs-favicon.png -resize 32x32 frontend\src\app\favicon.ico
