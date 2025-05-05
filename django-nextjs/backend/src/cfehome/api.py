@@ -11,6 +11,16 @@ from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_jwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
+from django.conf import settings
+from django.contrib.auth import login
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
+
+from googler import oauth as googler_oauth, services as googler_services , schemas as googler_schemas
+
+LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
+# 
+
 User = get_user_model()
 
 api = NinjaExtraAPI(auth=user_or_anon)
@@ -67,35 +77,37 @@ def signup(request,  payload: EmailloginSchema):
 
 
 
-
-from django.conf import settings
-from django.contrib.auth import login
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
-
-from googler import oauth, services
-
-LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
-# 
-
+@api.get("/google/login/", 
+        response=googler_schemas.GoogleLoginSchema, 
+        auth=anon_required)
 def google_login_view(request):
-    if request.method == "POST":
-        # csrf_token security
-        google_oauth2_url = oauth.generate_auth_url()
-        return redirect(google_oauth2_url)
-    return render(request, "googler/login.html", {})
+    google_oauth2_url = googler_oauth.generate_auth_url()
+    return {
+        "redirect_url": google_oauth2_url
+    }
 
-
-def google_login_callback_view(request):
+@api.post("/google/callback/", 
+        response=UserSchema, 
+        auth=anon_required)
+def google_login_callback_view(request, payload: googler_schemas.GoogleCallbackSchema):
     # print(request.GET)
-    state = request.GET.get('state')
-    code = request.GET.get('code')
+    state = payload.state
+    code = payload.code
     try:
-        token_json = oauth.verify_google_oauth_callback(state, code)
+        token_json = googler_oauth.verify_google_oauth_callback(state, code)
     except Exception as e:
-        return HttpResponse(f"{e}", status=400)
-    google_user_info = oauth.verify_token_json(token_json)
-    user = services.get_or_create_google_user(google_user_info)
-    # save_google_auth_tokens(user, google_user_info, token_json)
-    login(request, user)
-    return redirect(LOGIN_REDIRECT_URL)
+        raise HttpError(500, "Could login user. Please try again later")
+    google_user_info = googler_oauth.verify_token_json(token_json)
+    user = googler_services.get_or_create_google_user(google_user_info)
+    if not user:
+        raise HttpError(400, "Could not login user try again")
+    if not user.is_active:
+       raise HttpError(400, "User is not active")
+    token = RefreshToken.for_user(user)
+    return {
+        "username": user.display_name,
+        "email": user.email,
+        "is_authenticated": True,
+        "access_token": str(token.access_token),
+        "refresh_token": str(token),
+    }
