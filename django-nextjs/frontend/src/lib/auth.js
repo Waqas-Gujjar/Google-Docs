@@ -49,5 +49,5 @@ export async function deleteTokens(){
     // logout
     const cookieStore = await cookies()
     cookieStore.delete(TOKEN_REFRESH_NAME)
-    return cookies().delete(TOKEN_NAME)
+    return cookieStore.delete(TOKEN_NAME)
 }

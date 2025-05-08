@@ -1,11 +1,15 @@
 "use client"
 
 import { useAPI } from "@/components/apiProvider";
+import fetcher  from "@/lib/fetcher";
 
 import Image from "next/image";
+import useSWR  from "swr";
 
 export default function Home() {
   const { isHealthy, isLoading: isAPIHealthyLoading } = useAPI();
+  const  { data, isLoading , error } = useSWR("/api/hello/",fetcher)
+  console.log(data)
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-start justify-items-center 

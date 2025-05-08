@@ -31,7 +31,16 @@ api = NinjaExtraAPI(auth=user_or_anon)
 
 @api.get("/hello/", auth=user_or_anon)
 def hello(request):
-    # print(request)
+    print(request.auth, request.user)
+    if request.auth:
+        user = request.user
+        if user.is_authenticated:
+            return {
+
+                "username": user.display_name,
+                "email": user.email,
+            }
+
     return {"message": "Hello World"}
 
 
@@ -40,6 +49,10 @@ def hello(request):
 @api.post("/login/", response=UserSchema, auth=anon_required)
 def login(request, payload: EmailloginSchema):
     user = authenticate(request, email=payload.email, password=payload.password)
+    if not user :
+         raise HttpError(400, "Could not user. Please try again later")
+    if not user.is_active:
+        raise HttpError(400, "user is not active")
     try:
         token = RefreshToken.for_user(user)
         return {

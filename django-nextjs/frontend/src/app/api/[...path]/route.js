@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import {urlJoin} from '@/lib/urlJoin';
+import { TokenFetcher } from '@/lib/tokenFetcher';
 
 const DJANGO_API_URL = process.env.DJANGO_API_URL;
 
 export async function GET(request, { params }) {
   const path = (await params).path;
   const url = urlJoin(DJANGO_API_URL, path) + request.nextUrl.search;
+  console.log(url)
   try {
-    const response = await fetch(url, {
+    const response = await TokenFetcher.Fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -28,7 +30,7 @@ export async function POST(request, { params }) {
   const url = urlJoin(DJANGO_API_URL, path)  + request.nextUrl.search;
   try {
     const body = await request.json();
-    const response = await fetch(url, {
+    const response = await TokenFetcher.Fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
