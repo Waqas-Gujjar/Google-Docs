@@ -21,6 +21,7 @@ MY_APPS = [
     "accounts",
     "profiles",
     "google",
+    "documents"
 ]
 
 

@@ -8,7 +8,7 @@ import useSWR  from "swr";
 
 export default function Home() {
   const { isHealthy, isLoading: isAPIHealthyLoading } = useAPI();
-  const  { data, isLoading , error } = useSWR("/api/hello/",fetcher)
+  const  { data, isLoading , error } = useSWR("/api/documents",fetcher)
   console.log(data)
 
   return (

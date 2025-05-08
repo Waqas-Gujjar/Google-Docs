@@ -16,6 +16,8 @@ from django.contrib.auth import login
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
+from documents.api import router as document_router
+
 from googler import oauth as googler_oauth, services as googler_services , schemas as googler_schemas
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
@@ -24,6 +26,8 @@ LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 User = get_user_model()
 
 api = NinjaExtraAPI(auth=user_or_anon)
+
+api.add_router("/documents", document_router)
 
 # adds /token/ pair/refresh/
 api.register_controllers(DjangoNextCustomController)
