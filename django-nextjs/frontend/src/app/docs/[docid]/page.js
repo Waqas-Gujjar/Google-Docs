@@ -2,20 +2,28 @@
 
 
 import { useAuth } from "@/components/authProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import fetcher from "@/lib/fetcher";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from 'react';
+
 
 import useSWR from "swr";
 
 export default function DocDetailPage() {
   const {docid} = useParams()
   const apiEndPoint = `/api/documents/${docid}`
-  const {isAuthenticated} = useAuth
-  const {data, isLoading, error} = useSWR(apiEndPoint, fetcher)
-  const isResultsArray = Array.isArray(data)
-  const results = data && isResultsArray ? data : []
-  console.log(results)
+  const {isAuthenticated} = useAuth()
+  const {data:doc , isLoading , error , mutate} = useSWR(apiEndPoint, fetcher)
+  const [formError, setFormError] = useState("")
+
+  if (isLoading){
+    return <div className="text-center mt-52 font-extrabold text-red-600">Loading...</div>
+  }
+ 
 
   if (error) {
     if (!isAuthenticated && error.status === 401) {
@@ -29,19 +37,45 @@ export default function DocDetailPage() {
     }
     return <div>{error.message} {error.status}</div>
   }
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setFormError("")
+    const formData = new FormData(event.target)
+    const objectFromForm = Object.fromEntries(formData)
+    const jsonData = JSON.stringify(objectFromForm)
+    const response = await fetch(apiEndPoint, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: jsonData,
+    })
+    let data = {}
+    try {
+      data = await response.json()
+    } catch (error) {}
+
+    if (response.ok) {
+      mutate()
+    } else {
+      setFormError(data.message || "Save Faild  ")
+    }
+  }
+
+  const title = doc?.title ? doc.title : "Document"
+
   return <>
-  <div className="max-w-2xl mx-auto px-4">
-    <h1 className='text-4xl font-bold mb-4'>Documents</h1>
-  <ul className="list-disc pl-6 space-y-2 mt-4">
-    {results.map((doc, idx)=>{
-        const docLink = `/docs/${doc.id}`
-        return <li key={`doc-${doc.id}-${idx}`}
-          className="text-gray-700 hover:text-gray-900 hover:underline"
-        >
-            <Link href={docLink}>Doc ({doc.id})</Link> 
-        </li>
-    })}
-    </ul>
+  <div className=" px-4 mt-3">
+    <h1 className='text-4xl font-bold mb-4'>{title}</h1>
+   <form onSubmit={handleSubmit} className="space-y-4">
+   {formError && (
+              <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
+                {formError}
+              </div>
+        )}
+      <Input type="text" className='font-semibold h-12 text-xl' defaultValue={doc.title} name='title' />
+      <Textarea className='h-[50vh]' defaultValue={doc.content} name="content" />
+      <Button type='submit' >Submit</Button>
+   </form>
     </div>
   </>
 }
