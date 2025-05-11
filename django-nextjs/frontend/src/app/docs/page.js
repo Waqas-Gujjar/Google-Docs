@@ -8,6 +8,7 @@ import useSWR from "swr";
 
 export default function DocListPage() {
   const {data, isLoading, error} = useSWR("/api/documents/", fetcher)
+  console.log(data)
   const isResultsArray = Array.isArray(data)
   const results = data && isResultsArray ? data : []
   console.log(results)

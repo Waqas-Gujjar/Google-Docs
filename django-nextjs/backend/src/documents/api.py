@@ -1,11 +1,14 @@
 from ninja import Router
 from typing import List
+from ninja.errors import HttpError
 
 from .models import Doc
-from .schemas import DocSchema
+from .schemas import DocSchema , DocUpdateSchema
+
 
 from helpers.api.auth.permissions import user_required
 from . import services as doc_service
+from . import exceptions as doc_exception
 
 router=Router()
 
@@ -15,8 +18,31 @@ def document_list_view(request):
     return qs
 
 
+def http_document_detail(request, document_id):
+    try:
+         obj = doc_service.get_document(user=request.user, document_id=document_id)
+    except doc_exception.documentNotFound as e:
+        raise HttpError(404, f'{e}')
+    except doc_exception.UserNoPermissionNotAllow as e:
+        raise HttpError(403,f'{e}')
+    except :
+        raise HttpError(500,'Unknow server error')
+    if obj is None:
+        raise HttpError(404,f'{document_id} is not found ')
+    return obj
+
+
 @router.get("/{document_id}/",response = DocSchema, auth = user_required)
 def document_list_view(request,document_id):
-    print(document_id)
-    qs = doc_service.documents_list(request.user)
-    return qs[0]
+    obj = http_document_detail(request,document_id)
+    return obj
+   
+
+@router.put("/{document_id}/",response = DocSchema, auth = user_required)
+def document_Update_view(request,document_id, payload:DocUpdateSchema ):
+    obj = http_document_detail(request,document_id)
+    update_data = payload.model_dump()
+    for key,val in update_data.items():
+        setattr(obj,key,val)
+    obj.save()
+    return obj
