@@ -1,8 +1,11 @@
 "use client"
 
+// import DocEditor from "@/components/editor/docEditer";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+
+
 
 
 
@@ -13,11 +16,11 @@ export default function Home() {
       font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 items-center sm:items-start">
 
-      
 
-         {/* <Button variant='outline' asChild>
-            <Link href='/docs/create'>Create new doc</Link>
-          </Button> */}
+      
+          <Button variant='outline' asChild>
+              <Link href='/docs/create'>Create new doc</Link>
+            </Button>
           <Button asChild>
             <Link href='/docs'>View Docs</Link>
           </Button>

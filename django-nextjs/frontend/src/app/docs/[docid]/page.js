@@ -4,17 +4,21 @@
 import { useAuth } from "@/components/authProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
 import fetcher from "@/lib/fetcher";
-import Link from "next/link";
+// import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 
+
+const DocEditor = dynamic( () => import( '@/components/editor/docEditer' ), { ssr: false } );
 
 import useSWR from "swr";
 
 export default function DocDetailPage() {
   const {docid} = useParams()
+  const editorRef = useRef(null)
   const apiEndPoint = `/api/documents/${docid}`
   const {isAuthenticated} = useAuth()
   const {data:doc , isLoading , error , mutate} = useSWR(apiEndPoint, fetcher)
@@ -42,7 +46,9 @@ export default function DocDetailPage() {
     event.preventDefault()
     setFormError("")
     const formData = new FormData(event.target)
+    const content = editorRef.current.editor.getData()
     const objectFromForm = Object.fromEntries(formData)
+    objectFromForm ['content'] = content
     const jsonData = JSON.stringify(objectFromForm)
     const response = await fetch(apiEndPoint, {
       method: "PUT",
@@ -73,7 +79,7 @@ export default function DocDetailPage() {
               </div>
         )}
       <Input type="text" className='font-semibold h-12 text-xl' defaultValue={doc.title} name='title' />
-      <Textarea className='h-[50vh]' defaultValue={doc.content} name="content" />
+      <DocEditor ref={editorRef} initialData={doc.content} name="content" placeholder='Write you content here!' />
       <Button type='submit' >Submit</Button>
    </form>
     </div>

@@ -7,6 +7,12 @@ DOC_CACHE_KEY = "document:list:{user_id}"
 DOC_CACHE_TIME_OUT = 300
 
 
+def create_document(user=None, title=None):
+    if user is None or title is None:
+        return None
+    return Doc.objects.create(user=user , title=title)
+
+
 def documents_list(user=None , force = False):
     if user is None:
         return []

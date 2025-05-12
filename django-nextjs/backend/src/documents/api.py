@@ -3,7 +3,7 @@ from typing import List
 from ninja.errors import HttpError
 
 from .models import Doc
-from .schemas import DocSchema , DocUpdateSchema
+from .schemas import DocSchema , DocUpdateSchema , DocCreateSchema
 
 
 from helpers.api.auth.permissions import user_required
@@ -37,6 +37,15 @@ def document_list_view(request,document_id):
     obj = http_document_detail(request,document_id)
     return obj
    
+
+@router.post("/",response = {201:DocSchema}, auth = user_required)
+def document_cerate_view(request,payload:DocCreateSchema):
+    obj = doc_service.create_document(user=request.user,title=payload.title)
+    if obj is None:
+        raise HttpError (404,'invalid data')
+    return obj
+   
+
 
 @router.put("/{document_id}/",response = DocSchema, auth = user_required)
 def document_Update_view(request,document_id, payload:DocUpdateSchema ):
