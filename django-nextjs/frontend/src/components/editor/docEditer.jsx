@@ -1,3 +1,6 @@
+
+
+
 "use client"
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -53,7 +56,6 @@ export default function DocEditor({ref, initialData, placeholder, onSave, docId}
 	const {data, isLoading} = useSWR('/api/ckeditor', fetcher)
 	const editorPresenceRef = useRef(null)
 	const license =  data?.license ? data?.license : 'GPL'
-    console.log(license)
 	
 	useEffect(() => {
 		setIsLayoutReady(true);
@@ -97,7 +99,7 @@ export default function DocEditor({ref, initialData, placeholder, onSave, docId}
 				},
 				plugins: COLAB_PLUGINS.concat([AIAssistant, CustomerAITextAdapter, AutoLink, Autosave, BlockQuote, Bold, Essentials, Heading, Italic, Link, Paragraph, Underline]),
 				cloudServices: {
-					tokenUrl: CLOUD_SERVICES_TOKEN_URL,
+					tokenUrl: fetchUserToken,
 					webSocketUrl: CLOUD_SERVICES_WEBSOCKET_URL
 				},
 				collaboration: {
@@ -174,7 +176,6 @@ export default function DocEditor({ref, initialData, placeholder, onSave, docId}
 			}
 		};
 	}, [isLayoutReady, isLoading]);
-    
 
 	return <div className='prose'>
 		<div className="presence mb-2" ref={editorPresenceRef}></div>
