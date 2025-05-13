@@ -87,7 +87,7 @@ export default function DocDetailPage() {
               </div>
         )}
       <Input type="text" className='font-semibold h-12 text-xl' defaultValue={doc.title} name='title' />
-      <DocEditor onSave={onSaveHandle} className="prose" ref={editorRef} initialData={doc.content} name="content" placeholder='Write you content here!' />
+      <DocEditor docId={docid} onSave={onSaveHandle} className="prose" ref={editorRef} initialData={doc.content} name="content" placeholder='Write you content here!' />
       <Button ref={submitBtnRef} type='submit' >Save Doc</Button>
    </form>
     </div>
