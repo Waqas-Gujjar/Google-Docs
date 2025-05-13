@@ -23,3 +23,21 @@
 	min-width: 795px;
 	max-width: 795px;
 }
+
+.editor-container_include-block-toolbar {
+	margin-left: 42px;
+}
+
+.prose {
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.ck-editor__editable {
+    min-height: 200px;
+    width: 100%;
+}
+
+.ck.ck-editor__main>.ck-editor__editable {
+    width: 100%;
+}

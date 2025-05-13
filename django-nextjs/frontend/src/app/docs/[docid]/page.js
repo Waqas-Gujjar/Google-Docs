@@ -20,6 +20,7 @@ export default function DocDetailPage() {
   const {docid} = useParams()
   const editorRef = useRef(null)
   const apiEndPoint = `/api/documents/${docid}`
+  const submitBtnRef = useRef(null)
   const {isAuthenticated} = useAuth()
   const {data:doc , isLoading , error , mutate} = useSWR(apiEndPoint, fetcher)
   const [formError, setFormError] = useState("")
@@ -67,6 +68,13 @@ export default function DocDetailPage() {
     }
   }
 
+  const onSaveHandle = (editor) => {
+
+    console.log(editor)
+    submitBtnRef.current.click()
+
+  }
+
   const title = doc?.title ? doc.title : "Document"
 
   return <>
@@ -79,8 +87,8 @@ export default function DocDetailPage() {
               </div>
         )}
       <Input type="text" className='font-semibold h-12 text-xl' defaultValue={doc.title} name='title' />
-      <DocEditor ref={editorRef} initialData={doc.content} name="content" placeholder='Write you content here!' />
-      <Button type='submit' >Submit</Button>
+      <DocEditor onSave={onSaveHandle} className="prose" ref={editorRef} initialData={doc.content} name="content" placeholder='Write you content here!' />
+      <Button ref={submitBtnRef} type='submit' >Save Doc</Button>
    </form>
     </div>
   </>

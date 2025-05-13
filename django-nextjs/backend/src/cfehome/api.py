@@ -17,6 +17,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
 from documents.api import router as document_router
+from ai.api import router as ai_router
 
 from googler import oauth as googler_oauth, services as googler_services , schemas as googler_schemas
 
@@ -28,6 +29,7 @@ User = get_user_model()
 api = NinjaExtraAPI(auth=user_or_anon)
 
 api.add_router("/documents", document_router)
+api.add_router("/ai", ai_router )
 
 # adds /token/ pair/refresh/
 api.register_controllers(DjangoNextCustomController)

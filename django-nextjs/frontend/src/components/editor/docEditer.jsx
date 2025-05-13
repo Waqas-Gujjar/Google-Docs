@@ -1,8 +1,9 @@
-"use client"
+'use client'
+
 
 /**
  * This configuration was generated using the CKEditor 5 Builder. You can modify it anytime using this link:
- * https://ckeditor.com/ckeditor-5/builder/?redirect=portal#installation/NodgNARATAdArDADBSBmALADnegnJgRkVxFLigKhDjgDZdUQHaQopNFM497aDcoKCAFMAdikRhgBMDLlhJBALqQ4w4RVwAzCEqA=
+ * https://ckeditor.com/ckeditor-5/builder/#installation/NodgNARATAdArDADBSA2VAWVBGAzATnxAA58oN84Qo5tjdVFFcQREMQrrjlIBTAHYpEYYNjDjJYEdgC6kDgBMAxj2URZQA==
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -12,34 +13,56 @@ import {
 	AutoLink,
 	Autosave,
 	BalloonToolbar,
+	BlockQuote,
 	BlockToolbar,
 	Bold,
 	Code,
 	Essentials,
-	FontBackgroundColor,
-	FontColor,
-	FontFamily,
-	FontSize,
+	GeneralHtmlSupport,
 	Italic,
 	Link,
 	Paragraph,
-	PlainTableOutput,
-	Table,
-	TableToolbar,
 	Underline
 } from 'ckeditor5';
+
+import { AIAssistant, AITextAdapter } from 'ckeditor5-premium-features';
 
 import 'ckeditor5/ckeditor5.css';
 
 import './docEditor.css';
+import useSWR from 'swr';
+import fetcher from '@/lib/fetcher';
+
+class CustomerAITextAdapter  extends AITextAdapter{
+    async sendRequest ( requestData ) {
+		const {query, context} = requestData
+		const endpoint = '/api/ai/'
+		const options = {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json'
+			}, 
+			body: JSON.stringify({
+				query: query,
+				context: context
+			})
+		}
+		const apiR = await fetch(endpoint, options)
+		if (!apiR.ok) {
+			throw AIRequestError("The request failed for unknown reason")
+		}
+		const data = await apiR.json()
+		requestData.onData(data.message)
+	}
+}
 
 
-const LICENSE_KEY =
-	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3NDgzMDM5OTksImp0aSI6IjQ5ZWZlNWRjLWVlODctNGMwMC1iZjdkLTZhZTJjNjQyOTZmYyIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiLCJzaCJdLCJ3aGl0ZUxhYmVsIjp0cnVlLCJsaWNlbnNlVHlwZSI6InRyaWFsIiwiZmVhdHVyZXMiOlsiKiJdLCJ2YyI6Ijg0NzA5NGU0In0.w8HD2iHZRCEZw1CC8sfLUz9vO-skH1hzNdkcbHYGt7chPunGJqq-bQ93muC4iAC5DL0XQRA56y8uHnvw-1CuTw';
 
-export default function DocEditor({ref , initialData , placeholder}) {
-	
+export default function DocEditor({ref , initialData , placeholder , onSave}) {
 	const [isLayoutReady, setIsLayoutReady] = useState(false);
+    const {data,isLoading} = useSWR('/api/ckeditor',fetcher)
+    const license = data?.license ? data?.license : 'GPL'
+    console.log(data,license)
 
 	useEffect(() => {
 		setIsLayoutReady(true);
@@ -51,58 +74,51 @@ export default function DocEditor({ref , initialData , placeholder}) {
 		if (!isLayoutReady) {
 			return {};
 		}
+        if (isLoading){
+            return {}
+        }
 
 		return {
 			editorConfig: {
 				toolbar: {
-					items: [
-						'fontSize',
-						'fontFamily',
-						'fontColor',
-						'fontBackgroundColor',
-						'|',
-						'bold',
-						'italic',
-						'underline',
-						'code',
-						'|',
-						'link',
-						'insertTable'
-					],
+					items: ['aiCommands', 'aiAssistant', '|','bold', 'italic', 'underline', 'code', '|', 'link', 'blockQuote'],
 					shouldNotGroupWhenFull: false
 				},
 				plugins: [
+                    AIAssistant,
 					AutoLink,
 					Autosave,
 					BalloonToolbar,
+					BlockQuote,
 					BlockToolbar,
 					Bold,
 					Code,
 					Essentials,
-					FontBackgroundColor,
-					FontColor,
-					FontFamily,
-					FontSize,
+					GeneralHtmlSupport,
 					Italic,
 					Link,
 					Paragraph,
-					PlainTableOutput,
-					Table,
-					TableToolbar,
+                    CustomerAITextAdapter,
 					Underline
 				],
-				balloonToolbar: ['bold', 'italic', '|', 'link'],
-				blockToolbar: ['fontSize', 'fontColor', 'fontBackgroundColor', '|', 'bold', 'italic', '|', 'link', 'insertTable'],
-				fontFamily: {
-					supportAllValues: true
-				},
-				fontSize: {
-					options: [10, 12, 14, 'default', 18, 20, 22],
-					supportAllValues: true
+                autosave: onSave ? {
+                    waitingTime: 500,
+                   save: onSave,
+                } : null,
+				balloonToolbar: ['aiAssistant', '|','bold', 'italic', '|', 'link'],
+				blockToolbar: ['aiCommands', 'aiAssistant', '|','bold', 'italic', '|', 'link'],
+				htmlSupport: {
+					allow: [
+						{
+							name: /^.*$/,
+							styles: true,
+							attributes: true,
+							classes: true
+						}
+					]
 				},
 				initialData: initialData ? initialData : '',
-					
-				licenseKey: LICENSE_KEY,
+				licenseKey: license,
 				link: {
 					addTargetToExternalLinks: true,
 					defaultProtocol: 'https://',
@@ -116,13 +132,12 @@ export default function DocEditor({ref , initialData , placeholder}) {
 						}
 					}
 				},
-				placeholder: placeholder ? placeholder : 'Type or paste your content here!',
-				table: {
-					contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-				}
+				placeholder: placeholder ? placeholder : 'Type or paste your content here!'
 			}
 		};
-	}, [isLayoutReady]);
+	}, [isLayoutReady,isLoading]);
 
-	return editorConfig && <CKEditor editor={ClassicEditor} config={editorConfig} ref={ref && ref} />
+	  return <div className='prose'>
+         { editorConfig && <CKEditor editor={ClassicEditor} config={editorConfig} ref={ref && ref} />}
+      </div>
 }
